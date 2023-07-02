@@ -36,6 +36,7 @@ class NewAd(StatesGroup):
 
 class WatchAd(StatesGroup):
     type = State()
+    pages = State()
     page = State()
 
 def main():
@@ -145,7 +146,7 @@ def main():
     async def ad_price(message: types.Message,state: FSMContext):
         async with state.proxy() as data:
             data['price'] = float(message.text)
-        await message.answer('Отправьте свой userid в телеграмм в виде @useridid',reply_markup=cnkb)
+        await message.answer('Отправьте свой userid в телеграмм в виде @userid',reply_markup=cnkb)
         await NewAd.next()
 
     @dp.message_handler(state=NewAd.userid)
@@ -153,12 +154,36 @@ def main():
         async with state.proxy() as data:
             data['userid'] = message.text
         await message.answer('Ваш товар отправлен на модерацию!')
+        await bot.send_photo(message.chat.id, photo=InputFile("images/doska-obyavlenii.png"),
+                             caption="Широкий выбор промышленного оборудования от надежных производителей. На нашей доске объявлений вы найдете станки, резаки, пресс-формы и многое другое для различных отраслей. Подписывайтесь на наш канал, чтобы быть в курсе новостей и специальных предложений.",
+                             reply_markup=startkb)
         async with state.proxy() as data:
             await db.add_ad(state)
         await state.finish()
 
 # watch AD logic
-    # pass)))
+    @dp.callback_query_handler(state=WatchAd.type)
+    async def adwatch_type(call: types.CallbackQuery, state: FSMContext):
+        async with state.proxy() as data:
+            data['pages'] = await db.get_ad(call.data)
+            data['page'] = 1
+        async with state.proxy() as data:
+            ads = data['pages']
+        for i in ads[0]:
+            await bot.send_photo(chat_id=call.from_user.id, photo=InputFile(os.getcwd() + i[4]),
+                                 caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}\nUserid: {i[6]}\n')
+        await call.message.answer('Для просмотра следующей страницы введите необходимое число (например 2)',
+                             reply_markup=cnkb)
+        await WatchAd.next()
+        await WatchAd.next()
+    @dp.message_handler(state=WatchAd.page)
+    async def adwatch_page(message: types.Message,state: FSMContext):
+        async with state.proxy() as data:
+            ads = data['pages']
+        for i in ads[int(message.text)-1]:
+            await bot.send_photo(chat_id=message.chat.id, photo=InputFile(os.getcwd() + i[4]),
+                                 caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}\nUserid: {i[6]}\n')
+
 
 # polling
     executor.start_polling(dp, skip_updates=True)
