@@ -50,8 +50,9 @@ def main():
     med = InlineKeyboardButton('Медицина', callback_data='Медицина')
     sport = InlineKeyboardButton('Спорт', callback_data='Спорт')
     cnck = InlineKeyboardButton('Назад', callback_data='cancel')
-    ctkb = InlineKeyboardMarkup(row_width=1).add(med,sport,cnck)
-
+    #ctkb = InlineKeyboardMarkup(row_width=1).add(med,sport,cnck)
+    catbuttons = [InlineKeyboardButton('Все категории', callback_data='Все категории'),InlineKeyboardButton('Промышленное', callback_data='Промышленное'),InlineKeyboardButton('Логистика и склад', callback_data='Логистика и склад'),InlineKeyboardButton('Для магазина', callback_data='Для магазина'),InlineKeyboardButton('Для ресторана', callback_data='Для ресторана'),InlineKeyboardButton('Для салона красоты', callback_data='Для салона красоты'),InlineKeyboardButton('Лабораторное', callback_data='Лабораторное'),InlineKeyboardButton('Медицинское', callback_data='Медицинское'),InlineKeyboardButton('Другое', callback_data='Другое'),InlineKeyboardButton('Назад', callback_data='cancel')]
+    ctkb = InlineKeyboardMarkup(row_width=1).add(*catbuttons)
     # CANCEL KEYBOARD
     cnck = InlineKeyboardButton('Назад', callback_data='cancel')
     cnkb = InlineKeyboardMarkup(row_width=1).add(cnck)
@@ -92,6 +93,22 @@ def main():
             await state.set_state('NewAd:price')
             await bot.send_message(chat_id=callback_query.from_user.id, text='Введите цену товара',
                                    reply_markup=cnkb)
+
+    @dp.callback_query_handler(lambda c: c.data == 'cancel', state=WatchAd)
+    async def process_callback_button(callback_query: types.CallbackQuery, state: FSMContext):
+        current_state = await state.get_state()
+        if current_state == 'WatchAd:type':
+            await state.reset_state()
+            await bot.send_photo(callback_query.from_user.id, photo=InputFile("images/doska-obyavlenii.png"),
+                                 caption="Широкий выбор промышленного оборудования от надежных производителей. На нашей доске объявлений вы найдете станки, резаки, пресс-формы и многое другое для различных отраслей. Подписывайтесь на наш канал, чтобы быть в курсе новостей и специальных предложений.",
+                                 reply_markup=startkb)
+        elif current_state == 'WatchAd:page':
+            await state.set_state('WatchAd:type')
+            await bot.send_message(chat_id=callback_query.from_user.id, text='Выберите категорию товара',
+                                   reply_markup=ctkb)
+
+
+
 
 # create or watch select
 
@@ -169,20 +186,27 @@ def main():
             data['page'] = 1
         async with state.proxy() as data:
             ads = data['pages']
-        for i in ads[0]:
-            await bot.send_photo(chat_id=call.from_user.id, photo=InputFile(os.getcwd() + i[4]),
-                                 caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}\nUserid: {i[6]}\n')
-        await call.message.answer('Для просмотра следующей страницы введите необходимое число (например 2)',
+
+        if len(ads)==0:
+            await call.message.answer('Пока объявлений нет:(',reply_markup=cnkb)
+        else:
+            for i in ads[0]:
+                await bot.send_photo(chat_id=call.from_user.id, photo=InputFile(os.getcwd() + i[4]),
+                                 caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUserid: {i[6]}\n')
+            await call.message.answer('Для просмотра следующей страницы введите необходимое число (например 2)',
                              reply_markup=cnkb)
-        await WatchAd.next()
-        await WatchAd.next()
+            await state.set_state('WatchAd:page')
     @dp.message_handler(state=WatchAd.page)
     async def adwatch_page(message: types.Message,state: FSMContext):
         async with state.proxy() as data:
             ads = data['pages']
-        for i in ads[int(message.text)-1]:
-            await bot.send_photo(chat_id=message.chat.id, photo=InputFile(os.getcwd() + i[4]),
-                                 caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}\nUserid: {i[6]}\n')
+        if message.text.isdigit()==False or int(message.text)>len(ads):
+            await message.answer('Такой страницы не существует!',reply_markup=cnkb)
+        else:
+            for i in ads[int(message.text)-1]:
+                await bot.send_photo(chat_id=message.chat.id, photo=InputFile(os.getcwd() + i[4]),
+                                 caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUserid: {i[6]}\n')
+            await message.answer(f'Cтраница {message.text} из {len(ads)}',reply_markup=cnkb)
 
 
 # polling
