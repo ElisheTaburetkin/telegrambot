@@ -11,11 +11,13 @@ class DataBase:
     photo TEXT, price REAL,
     userid TEXT);""")
         self.conn.commit()
+        
     async def add_ad(self, state):
         async with state.proxy() as data:
             self.cur.execute(f"""INSERT INTO AD(type, name, description, photo, price, userid)
                         VALUES('{data['type']}', '{data['name']}', '{data['description']}', '{data['photo']}','{data['price']}','{data['userid']}');""")
             self.conn.commit()
+            
     async def get_ad(self, type):
         if type!='Все категории':
             ads = self.cur.execute(f""" SELECT * FROM AD WHERE type='{type}';""").fetchall()
