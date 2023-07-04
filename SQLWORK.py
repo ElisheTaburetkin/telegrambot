@@ -1,4 +1,5 @@
 import sqlite3
+import os
 
 class DataBase:
     def __init__(self):
@@ -10,7 +11,7 @@ class DataBase:
     photo TEXT, price REAL,
     userid TEXT);""")
         self.conn.commit()
-    async def add_ad(self,state):
+    async def add_ad(self, state):
         async with state.proxy() as data:
             self.cur.execute(f"""INSERT INTO AD(type, name, description, photo, price, userid)
                         VALUES('{data['type']}', '{data['name']}', '{data['description']}', '{data['photo']}','{data['price']}','{data['userid']}');""")
@@ -51,3 +52,12 @@ class DataBase:
                     ad=[]
                     page += 1
         return ADS
+
+    async def moder_ad(self):
+        return self.cur.execute(f""" SELECT * FROM AD;""").fetchall()
+
+    async def reject_ad(self, id):
+        photo = self.cur.execute(f""" SELECT photo FROM AD where id='{id}';""").fetchone()[0]
+        os.remove(os.getcwd() + photo)
+        self.cur.execute(f"""DELETE FROM AD WHERE id='{id}';""")
+        self.conn.commit()

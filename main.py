@@ -39,12 +39,21 @@ class WatchAd(StatesGroup):
     pages = State()
     page = State()
 
+class Admin(StatesGroup):
+    AdminPannel = State()
+
 def main():
 
     # START KEYBOARD
     watch_ob = InlineKeyboardButton('Смотреть объявления', callback_data='watch')
     create_ob = InlineKeyboardButton('Создать объявление', callback_data='create')
     startkb = InlineKeyboardMarkup(row_width=1).add(watch_ob,create_ob)
+
+    # ADMIN KEYBOARD
+    admin_buttons = ['Модерация объявлений✔', 'Удаление объявлений🗑️', 'Статистика📊', 'Выход🏃']
+    admin_kb = ReplyKeyboardMarkup(resize_keyboard=True)
+    admin_kb.add(*admin_buttons)
+
 
     # CATEGORY KEYBOARD
     med = InlineKeyboardButton('Медицина', callback_data='Медицина')
@@ -53,6 +62,7 @@ def main():
     #ctkb = InlineKeyboardMarkup(row_width=1).add(med,sport,cnck)
     catbuttons = [InlineKeyboardButton('Все категории', callback_data='Все категории'),InlineKeyboardButton('Промышленное', callback_data='Промышленное'),InlineKeyboardButton('Логистика и склад', callback_data='Логистика и склад'),InlineKeyboardButton('Для магазина', callback_data='Для магазина'),InlineKeyboardButton('Для ресторана', callback_data='Для ресторана'),InlineKeyboardButton('Для салона красоты', callback_data='Для салона красоты'),InlineKeyboardButton('Лабораторное', callback_data='Лабораторное'),InlineKeyboardButton('Медицинское', callback_data='Медицинское'),InlineKeyboardButton('Другое', callback_data='Другое'),InlineKeyboardButton('Назад', callback_data='cancel')]
     ctkb = InlineKeyboardMarkup(row_width=1).add(*catbuttons)
+
     # CANCEL KEYBOARD
     cnck = InlineKeyboardButton('Назад', callback_data='cancel')
     cnkb = InlineKeyboardMarkup(row_width=1).add(cnck)
@@ -62,6 +72,16 @@ def main():
     @dp.message_handler(commands=['start'])
     async def process_start_command(message: types.Message):
         await bot.send_photo(message.chat.id, photo=InputFile("images/doska-obyavlenii.png"), caption="Широкий выбор промышленного оборудования от надежных производителей. На нашей доске объявлений вы найдете станки, резаки, пресс-формы и многое другое для различных отраслей. Подписывайтесь на наш канал, чтобы быть в курсе новостей и специальных предложений.",reply_markup=startkb)
+
+# admin command logic
+    @dp.message_handler(commands=['admin'])
+    async def process_admin_command(message: types.Message,state: FSMContext):
+        await message.answer('Проверка доступа...')
+        if str(message.from_user.id) in ADMINUID:
+            await message.answer('Доступ к панели администратора получен!✅',reply_markup=admin_kb)
+            await state.set_state('Admin:AdminPannel')
+        else:
+            await message.answer('Отказано в доступе❌')
 
 # cancel button logic
 
@@ -107,9 +127,6 @@ def main():
             await bot.send_message(chat_id=callback_query.from_user.id, text='Выберите категорию товара',
                                    reply_markup=ctkb)
 
-
-
-
 # create or watch select
 
     @dp.callback_query_handler()
@@ -121,6 +138,34 @@ def main():
             await WatchAd.type.set()
             await bot.send_message(chat_id=callback_query.from_user.id, text='Выберите категорию товара',
                                    reply_markup=ctkb)
+
+# Admin logic
+
+    @dp.message_handler(state=Admin.AdminPannel)
+    async def admin(message: types.Message,state: FSMContext):
+        if message.text=='Выход🏃':
+            await state.reset_state()
+            await message.answer('Вы вышли из панели администратора!❌',reply_markup=types.ReplyKeyboardRemove())
+            await bot.send_photo(message.from_user.id, photo=InputFile("images/doska-obyavlenii.png"),
+                                 caption="Широкий выбор промышленного оборудования от надежных производителей. На нашей доске объявлений вы найдете станки, резаки, пресс-формы и многое другое для различных отраслей. Подписывайтесь на наш канал, чтобы быть в курсе новостей и специальных предложений.",
+                                 reply_markup=startkb)
+        elif message.text=='Модерация объявлений✔':
+            ads = await db.moder_ad()
+            for i in ads:
+                buttons = [InlineKeyboardButton('Отклонить❌', callback_data=f'reject_{i[0]}'),InlineKeyboardButton('Принять✅', callback_data=f'accept_{i[0]}')]
+                kb = InlineKeyboardMarkup(row_width=2).add(*buttons)
+                await bot.send_photo(chat_id=message.from_user.id, photo=InputFile(os.getcwd() + i[4]),
+                                     caption=f'Категория: {i[1]}\nНазвание: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUserid: {i[6]}\n',reply_markup=kb)
+
+    @dp.callback_query_handler(state=Admin.AdminPannel)
+    async def api(call: types.CallbackQuery, state: FSMContext):
+        if call.data[:6]=='reject':
+            id_ad = int(call.data[7:])
+            await db.reject_ad(id_ad)
+            await call.message.delete()
+        if call.data[:6]=='accept':
+            print('accepted')
+
 
 # create AD logic
 
@@ -179,6 +224,7 @@ def main():
         await state.finish()
 
 # watch AD logic
+
     @dp.callback_query_handler(state=WatchAd.type)
     async def adwatch_type(call: types.CallbackQuery, state: FSMContext):
         async with state.proxy() as data:
@@ -196,6 +242,7 @@ def main():
             await call.message.answer('Для просмотра следующей страницы введите необходимое число (например 2)',
                              reply_markup=cnkb)
             await state.set_state('WatchAd:page')
+
     @dp.message_handler(state=WatchAd.page)
     async def adwatch_page(message: types.Message,state: FSMContext):
         async with state.proxy() as data:
@@ -207,7 +254,6 @@ def main():
                 await bot.send_photo(chat_id=message.chat.id, photo=InputFile(os.getcwd() + i[4]),
                                  caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUserid: {i[6]}\n')
             await message.answer(f'Cтраница {message.text} из {len(ads)}',reply_markup=cnkb)
-
 
 # polling
     executor.start_polling(dp, skip_updates=True)
