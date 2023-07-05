@@ -71,6 +71,7 @@ def main():
 
     @dp.message_handler(commands=['start'])
     async def process_start_command(message: types.Message):
+        await db.add_user(message.from_user.id)
         await bot.send_photo(message.chat.id, photo=InputFile("images/doska-obyavlenii.png"), caption="Широкий выбор промышленного оборудования от надежных производителей. На нашей доске объявлений вы найдете станки, резаки, пресс-формы и многое другое для различных отраслей. Подписывайтесь на наш канал, чтобы быть в курсе новостей и специальных предложений.",reply_markup=startkb)
 
 # admin command logic
@@ -161,11 +162,20 @@ def main():
     async def api(call: types.CallbackQuery, state: FSMContext):
         if call.data[:6]=='reject':
             id_ad = int(call.data[7:])
-            await db.reject_ad(id_ad)
+            result = await db.reject_ad(id_ad)
             await call.message.delete()
+            try:
+                await bot.send_message(result[0], result[1])
+            except:
+                pass
         if call.data[:6]=='accept':
-            print('accepted')
-
+            id_ad = int(call.data[7:])
+            result = await db.accept_ad(id_ad)
+            await call.message.delete()
+            try:
+                await bot.send_message(result[0],result[1])
+            except:
+                pass
 
 # create AD logic
 
@@ -215,12 +225,13 @@ def main():
     async def ad_uid(message: types.Message,state: FSMContext):
         async with state.proxy() as data:
             data['userid'] = message.text
-        await message.answer('Ваш товар отправлен на модерацию!')
+            userfromid = message.from_user.id
+        await message.answer('Ваше объявление отправлено на модерацию!')
         await bot.send_photo(message.chat.id, photo=InputFile("images/doska-obyavlenii.png"),
                              caption="Широкий выбор промышленного оборудования от надежных производителей. На нашей доске объявлений вы найдете станки, резаки, пресс-формы и многое другое для различных отраслей. Подписывайтесь на наш канал, чтобы быть в курсе новостей и специальных предложений.",
                              reply_markup=startkb)
         async with state.proxy() as data:
-            await db.add_ad(state)
+            await db.add_ad(state, userfromid)
         await state.finish()
 
 # watch AD logic

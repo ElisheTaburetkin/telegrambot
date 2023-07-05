@@ -1,2 +1,2 @@
-TOKEN = '5830853476:AAFpcN5qHFKseGTCiMAsba1ki9gR3n_op4w' # Enter your TG bot token here
-ADMINUID = ['',''] # Enter your TG id here
+TOKEN = '5660719515:AAG60l687oK--b6-DKGhGV9H11nQrxw1AQ4' # Enter your TG bot token here
+ADMINUID = ['726079589'] # Enter your TG id here
