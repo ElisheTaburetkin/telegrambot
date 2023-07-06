@@ -38,7 +38,7 @@ class DataBase:
             ADS=[]
             ad=[]
             for i in ads:
-                if counter!=3:
+                if counter%3!=0:
                     ad.append(i)
                     if counter==len(ads):
                         ADS.append(ad)
@@ -47,6 +47,7 @@ class DataBase:
                     ad.append(i)
                     ADS.append(ad)
                     ad=[]
+                    counter += 1
                     page += 1
         else:
             ads = self.cur.execute(f""" SELECT * FROM AD_MAIN;""").fetchall()
@@ -55,7 +56,7 @@ class DataBase:
             ADS=[]
             ad=[]
             for i in ads:
-                if counter!=3:
+                if counter%3!=0:
                     ad.append(i)
                     if counter==len(ads):
                         ADS.append(ad)
@@ -64,11 +65,42 @@ class DataBase:
                     ad.append(i)
                     ADS.append(ad)
                     ad=[]
+                    counter += 1
                     page += 1
         return ADS
 
     async def moder_ad(self):
         return self.cur.execute(f""" SELECT * FROM AD;""").fetchall()
+
+    async def watch_delete_ad(self):
+        ads = self.cur.execute(f""" SELECT * FROM AD_MAIN;""").fetchall()
+        counter = 1
+        page = 1
+        ADS = []
+        ad = []
+        for i in ads:
+            if counter % 3 != 0:
+                ad.append(i)
+                if counter == len(ads):
+                    ADS.append(ad)
+                counter += 1
+            elif counter % 3 == 0:
+                ad.append(i)
+                ADS.append(ad)
+                ad = []
+                counter += 1
+                page += 1
+        return ADS
+
+    async def delete_ad(self, id):
+        try:
+            ad = self.cur.execute(f""" SELECT * FROM AD_MAIN WHERE id='{id}';""").fetchone()
+            photo = ad[4]
+            os.remove(os.getcwd() + photo)
+            self.cur.execute(f"""DELETE FROM AD_MAIN WHERE id='{id}';""")
+            self.conn.commit()
+        except:
+            pass
 
     async def reject_ad(self, id):
         try:

@@ -41,6 +41,7 @@ class WatchAd(StatesGroup):
 
 class Admin(StatesGroup):
     AdminPannel = State()
+    DeleteAds = State()
 
 def main():
 
@@ -152,11 +153,44 @@ def main():
                                  reply_markup=startkb)
         elif message.text=='Модерация объявлений✔':
             ads = await db.moder_ad()
-            for i in ads:
-                buttons = [InlineKeyboardButton('Отклонить❌', callback_data=f'reject_{i[0]}'),InlineKeyboardButton('Принять✅', callback_data=f'accept_{i[0]}')]
-                kb = InlineKeyboardMarkup(row_width=2).add(*buttons)
+            if len(ads)==0:
+                await message.answer('Нет объявлений для модерации')
+            else:
+                for i in ads:
+                    buttons = [InlineKeyboardButton('Отклонить❌', callback_data=f'reject_{i[0]}'),InlineKeyboardButton('Принять✅', callback_data=f'accept_{i[0]}')]
+                    kb = InlineKeyboardMarkup(row_width=2).add(*buttons)
+                    await bot.send_photo(chat_id=message.from_user.id, photo=InputFile(os.getcwd() + i[4]),
+                                     caption=f'Категория: {i[1]}\nНазвание: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUsername: {i[6]}\n',reply_markup=kb)
+        elif message.text=='Удаление объявлений🗑️':
+            await state.set_state('Admin:DeleteAds')
+            ads = await db.watch_delete_ad()
+            async with state.proxy() as data:
+                data['DeletAds'] = ads
+            if len(ads) == 0:
+                await message.answer('Пока объявлений нет:(', reply_markup=cnkb)
+            else:
+                for i in ads[0]:
+                    buttons = [InlineKeyboardButton('Удалить🗑️', callback_data=f'delete_{i[0]}')]
+                    kb = InlineKeyboardMarkup(row_width=1).add(*buttons)
+                    await bot.send_photo(chat_id=message.from_user.id, photo=InputFile(os.getcwd() + i[4]),
+                                         caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUsername: {i[6]}\n',reply_markup=kb)
+                await message.answer('Для просмотра следующей страницы введите необходимое число (например 2)',
+                                          reply_markup=cnkb)
+
+    @dp.message_handler(state=Admin.DeleteAds)
+    async def adwatch_page(message: types.Message,state: FSMContext):
+        async with state.proxy() as data:
+            ads = data['DeletAds']
+        if message.text.isdigit() == False or int(message.text)>len(ads):
+            await message.answer('Такой страницы не существует!',reply_markup=cnkb)
+        else:
+            for i in ads[int(message.text)-1]:
+                buttons = [InlineKeyboardButton('Удалить🗑️', callback_data=f'delete_{i[0]}')]
+                kb = InlineKeyboardMarkup(row_width=1).add(*buttons)
                 await bot.send_photo(chat_id=message.from_user.id, photo=InputFile(os.getcwd() + i[4]),
-                                     caption=f'Категория: {i[1]}\nНазвание: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUserid: {i[6]}\n',reply_markup=kb)
+                                     caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUsername: {i[6]}\n',
+                                     reply_markup=kb)
+            await message.answer(f'Cтраница {message.text} из {len(ads)}',reply_markup=cnkb)
 
     @dp.callback_query_handler(state=Admin.AdminPannel)
     async def api(call: types.CallbackQuery, state: FSMContext):
@@ -176,6 +210,19 @@ def main():
                 await bot.send_message(result[0],result[1])
             except:
                 pass
+
+    @dp.callback_query_handler(state=Admin.DeleteAds)
+    async def api_del(call: types.CallbackQuery, state: FSMContext):
+        if call.data=='cancel':
+            await state.set_state('Admin:AdminPannel')
+            await call.message.answer('Вы вышли на главную страницу админ панели')
+        elif call.data[:6]=='delete':
+            id_ad = int(call.data[7:])
+            await db.delete_ad(id_ad)
+            async with state.proxy() as data:
+                data['DeletAds'] = await db.watch_delete_ad()
+            await call.message.delete()
+
 
 # create AD logic
 
@@ -216,23 +263,29 @@ def main():
 
     @dp.message_handler(state=NewAd.price)
     async def ad_price(message: types.Message,state: FSMContext):
-        async with state.proxy() as data:
-            data['price'] = float(message.text)
-        await message.answer('Отправьте свой userid в телеграмм в виде @userid',reply_markup=cnkb)
-        await NewAd.next()
+        try:
+            async with state.proxy() as data:
+                data['price'] = float(message.text)
+            await message.answer('Отправьте свой username в телеграмм в виде @userid',reply_markup=cnkb)
+            await NewAd.next()
+        except:
+            await message.answer('Цена должна быть числом!')
 
     @dp.message_handler(state=NewAd.userid)
     async def ad_uid(message: types.Message,state: FSMContext):
-        async with state.proxy() as data:
-            data['userid'] = message.text
-            userfromid = message.from_user.id
-        await message.answer('Ваше объявление отправлено на модерацию!')
-        await bot.send_photo(message.chat.id, photo=InputFile("images/doska-obyavlenii.png"),
+        if message.text[0]=='@':
+            async with state.proxy() as data:
+                data['userid'] = message.text
+                userfromid = message.from_user.id
+            await message.answer('Ваше объявление отправлено на модерацию!')
+            await bot.send_photo(message.chat.id, photo=InputFile("images/doska-obyavlenii.png"),
                              caption="Широкий выбор промышленного оборудования от надежных производителей. На нашей доске объявлений вы найдете станки, резаки, пресс-формы и многое другое для различных отраслей. Подписывайтесь на наш канал, чтобы быть в курсе новостей и специальных предложений.",
                              reply_markup=startkb)
-        async with state.proxy() as data:
-            await db.add_ad(state, userfromid)
-        await state.finish()
+            async with state.proxy() as data:
+                await db.add_ad(state, userfromid)
+            await state.finish()
+        else:
+            await message.answer('Username должен быть введен в формтате @username')
 
 # watch AD logic
 
@@ -249,7 +302,7 @@ def main():
         else:
             for i in ads[0]:
                 await bot.send_photo(chat_id=call.from_user.id, photo=InputFile(os.getcwd() + i[4]),
-                                 caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUserid: {i[6]}\n')
+                                 caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUsername: {i[6]}\n')
             await call.message.answer('Для просмотра следующей страницы введите необходимое число (например 2)',
                              reply_markup=cnkb)
             await state.set_state('WatchAd:page')
@@ -258,12 +311,12 @@ def main():
     async def adwatch_page(message: types.Message,state: FSMContext):
         async with state.proxy() as data:
             ads = data['pages']
-        if message.text.isdigit()==False or int(message.text)>len(ads):
+        if message.text.isdigit() == False or int(message.text)>len(ads):
             await message.answer('Такой страницы не существует!',reply_markup=cnkb)
         else:
             for i in ads[int(message.text)-1]:
                 await bot.send_photo(chat_id=message.chat.id, photo=InputFile(os.getcwd() + i[4]),
-                                 caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUserid: {i[6]}\n')
+                                 caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUsername: {i[6]}\n')
             await message.answer(f'Cтраница {message.text} из {len(ads)}',reply_markup=cnkb)
 
 # polling
