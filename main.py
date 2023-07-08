@@ -57,12 +57,19 @@ def main():
 
 
     # CATEGORY KEYBOARD
-    med = InlineKeyboardButton('Медицина', callback_data='Медицина')
-    sport = InlineKeyboardButton('Спорт', callback_data='Спорт')
-    cnck = InlineKeyboardButton('Назад', callback_data='cancel')
-    #ctkb = InlineKeyboardMarkup(row_width=1).add(med,sport,cnck)
     catbuttons = [InlineKeyboardButton('Все категории', callback_data='Все категории'),InlineKeyboardButton('Промышленное', callback_data='Промышленное'),InlineKeyboardButton('Логистика и склад', callback_data='Логистика и склад'),InlineKeyboardButton('Для магазина', callback_data='Для магазина'),InlineKeyboardButton('Для ресторана', callback_data='Для ресторана'),InlineKeyboardButton('Для салона красоты', callback_data='Для салона красоты'),InlineKeyboardButton('Лабораторное', callback_data='Лабораторное'),InlineKeyboardButton('Медицинское', callback_data='Медицинское'),InlineKeyboardButton('Другое', callback_data='Другое'),InlineKeyboardButton('Назад', callback_data='cancel')]
     ctkb = InlineKeyboardMarkup(row_width=1).add(*catbuttons)
+    catcrbuttons = [
+                  InlineKeyboardButton('Промышленное', callback_data='Промышленное'),
+                  InlineKeyboardButton('Логистика и склад', callback_data='Логистика и склад'),
+                  InlineKeyboardButton('Для магазина', callback_data='Для магазина'),
+                  InlineKeyboardButton('Для ресторана', callback_data='Для ресторана'),
+                  InlineKeyboardButton('Для салона красоты', callback_data='Для салона красоты'),
+                  InlineKeyboardButton('Лабораторное', callback_data='Лабораторное'),
+                  InlineKeyboardButton('Медицинское', callback_data='Медицинское'),
+                  InlineKeyboardButton('Другое', callback_data='Другое'),
+                  InlineKeyboardButton('Назад', callback_data='cancel')]
+    ctkbc = InlineKeyboardMarkup(row_width=1).add(*catcrbuttons)
 
     # CANCEL KEYBOARD
     cnck = InlineKeyboardButton('Назад', callback_data='cancel')
@@ -98,7 +105,7 @@ def main():
         elif current_state=='NewAd:name':
             await state.set_state('NewAd:type')
             await bot.send_message(chat_id=callback_query.from_user.id, text='Выберите категорию товара',
-                                   reply_markup=ctkb)
+                                   reply_markup=ctkbc)
         elif current_state == 'NewAd:description':
             await state.set_state('NewAd:name')
             await bot.send_message(chat_id=callback_query.from_user.id, text='Введите название товара',
@@ -135,7 +142,7 @@ def main():
     async def newad(callback_query: types.CallbackQuery):
         if callback_query.data == 'create':
             await NewAd.type.set()
-            await bot.send_message(chat_id=callback_query.from_user.id,text='Выберите категорию товара',reply_markup=ctkb)
+            await bot.send_message(chat_id=callback_query.from_user.id,text='Выберите категорию товара',reply_markup=ctkbc)
         elif callback_query.data == 'watch':
             await WatchAd.type.set()
             await bot.send_message(chat_id=callback_query.from_user.id, text='Выберите категорию товара',
@@ -176,6 +183,10 @@ def main():
                                          caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUsername: {i[6]}\n',reply_markup=kb)
                 await message.answer('Для просмотра следующей страницы введите необходимое число (например 2)',
                                           reply_markup=cnkb)
+        elif message.text == 'Статистика📊':
+            result = await db.get_stats()
+            await message.answer(result[0])
+            await bot.send_photo(chat_id=message.from_user.id,photo=InputFile(os.getcwd()+'\\images\\stats\\' + result[1] + '.png'), caption='Статистика объявлений по категориям')
 
     @dp.message_handler(state=Admin.DeleteAds)
     async def adwatch_page(message: types.Message,state: FSMContext):
