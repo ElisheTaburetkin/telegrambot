@@ -124,7 +124,7 @@ class DataBase:
             self.cur.execute(f"""INSERT INTO AD_MAIN(type, name, description, photo, price, userid, date)
                         VALUES('{ad[1]}', '{ad[2]}', '{ad[3]}', '{ad[4]}','{ad[5]}','{ad[6]}','{date.today()}');""")
             self.conn.commit()
-            return [int(ad[7]),f'Ваше объявление {ad[2]}, {ad[5]}₽ прошло модерацию и опубликовано!✅']
+            return [int(ad[7]),f'Ваше объявление {ad[2]}, {ad[5]}₽ прошло модерацию и опубликовано!✅', ad]
         except:
             pass
 

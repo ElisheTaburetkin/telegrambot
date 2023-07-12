@@ -218,6 +218,10 @@ def main():
             result = await db.accept_ad(id_ad)
             await call.message.delete()
             try:
+                if TGCHANNEL:
+                    i = result[2]
+                    await bot.send_photo(chat_id=TGCHANNEL, photo=InputFile(os.getcwd() + i[4]),
+                                         caption=f'#новоеобъявление\nКатегория: {i[1]}\nНазвание: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUsername: {i[6]}\n')
                 await bot.send_message(result[0],result[1])
             except:
                 pass
