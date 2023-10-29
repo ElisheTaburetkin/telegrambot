@@ -39,12 +39,12 @@ class DataBase:
             ADS=[]
             ad=[]
             for i in ads:
-                if counter%3!=0:
+                if counter%10!=0:
                     ad.append(i)
                     if counter==len(ads):
                         ADS.append(ad)
                     counter += 1
-                elif counter%3==0:
+                elif counter%10==0:
                     ad.append(i)
                     ADS.append(ad)
                     ad=[]
@@ -57,12 +57,12 @@ class DataBase:
             ADS=[]
             ad=[]
             for i in ads:
-                if counter%3!=0:
+                if counter%10!=0:
                     ad.append(i)
                     if counter==len(ads):
                         ADS.append(ad)
                     counter += 1
-                elif counter%3==0:
+                elif counter%10==0:
                     ad.append(i)
                     ADS.append(ad)
                     ad=[]
@@ -142,7 +142,7 @@ class DataBase:
         on_moder_ads = len(self.cur.execute(f""" SELECT * FROM AD;""").fetchall())
         ads = len(self.cur.execute(f""" SELECT * FROM AD_MAIN;""").fetchall())
 
-        labels = ['Промышленное','Логистика и склад','Готовый бизнес','Для автобизнеса','Для магазина','Для ресторана','Для салона красоты','Лабораторное','Медицинское','Другое']
+        labels = ['Мужская одежда и обувь','Женская одежда и обувь','Детская одежда и обувь','Товары для детей и игрушки','Электроника','Красота и здоровье','Часы и украшения','Работа','Услуги','Другое']
         values = []
         labelsn = []
         for i in labels:
@@ -157,7 +157,7 @@ class DataBase:
         wedges, texts, autotexts = ax1.pie(values, labels=labels, autopct='%1.2f%%')
         ax1.axis('equal')
         filename = str(datetime.utcnow()).replace(' ','_').replace('.',':',1).replace(':','-')
-        plt.savefig(os.getcwd()+f'\\images\\stats\\{filename}.png')
+        plt.savefig(os.getcwd()+f'/images/stats/{filename}.png')
         return [f'Пользователи: {quantity_users} ({users_last_mounth} за последние 31 день)\nОбъявлений: {ads}\nОбъявлений на модерации: {on_moder_ads}',filename]
 
     async def get_len_ads(self):
