@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 # aiogram
 from aiogram import Bot, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -48,28 +50,41 @@ def main():
     # START KEYBOARD
     watch_ob = InlineKeyboardButton('Смотреть объявления', callback_data='watch')
     create_ob = InlineKeyboardButton('Создать объявление', callback_data='create')
-    admin_rev = InlineKeyboardButton('Связь с администратором', url='t.me/Mangust75')
-    startkb = InlineKeyboardMarkup(row_width=1).add(watch_ob,create_ob,admin_rev)
+    admin_rev = InlineKeyboardButton('Связь с администратором', url='t.me/myth75')
+    rules = InlineKeyboardButton('Правила пользования', callback_data='rules')
+    video_guide = InlineKeyboardButton('Видеоинструкция', callback_data='video')
+    startkb = InlineKeyboardMarkup(row_width=1).add(watch_ob,create_ob,admin_rev,rules,video_guide)
 
     # ADMIN KEYBOARD
     admin_buttons = ['Модерация объявлений✔', 'Удаление объявлений🗑️', 'Статистика📊', 'Выход🏃']
     admin_kb = ReplyKeyboardMarkup(resize_keyboard=True)
     admin_kb.add(*admin_buttons)
 
-
     # CATEGORY KEYBOARD
-    catbuttons = [InlineKeyboardButton('Все категории', callback_data='Все категории'),InlineKeyboardButton('Промышленное', callback_data='Промышленное'),InlineKeyboardButton('Логистика и склад',  callback_data='Логистика и склад'), InlineKeyboardButton('Готовый бизнес', callback_data='Готовый бизнес'), InlineKeyboardButton('Для автобизнеса', callback_data='Для автобизнеса'), InlineKeyboardButton('Для магазина', callback_data='Для магазина'),InlineKeyboardButton('Для ресторана', callback_data='Для ресторана'),InlineKeyboardButton('Для салона красоты', callback_data='Для салона красоты'),InlineKeyboardButton('Лабораторное', callback_data='Лабораторное'),InlineKeyboardButton('Медицинское', callback_data='Медицинское'),InlineKeyboardButton('Другое', callback_data='Другое'),InlineKeyboardButton('Назад', callback_data='cancel')]
+    catbuttons = [
+                  InlineKeyboardButton('Мужская одежда и обувь', callback_data='Мужская одежда и обувь'),
+                  InlineKeyboardButton('Женская одежда и обувь', callback_data='Женская одежда и обувь'),
+                  InlineKeyboardButton('Детская одежда и обувь', callback_data='Детская одежда и обувь'),
+                  InlineKeyboardButton('Товары для детей и игрушки', callback_data='Товары для детей и игрушки'),
+                  InlineKeyboardButton('Электроника', callback_data='Электроника '),
+                  InlineKeyboardButton('Красота и здоровье', callback_data='Красота и здоровье'),
+                  InlineKeyboardButton('Часы и украшения', callback_data='Часы и украшения'),
+                  InlineKeyboardButton('Работа', callback_data='Работа'),
+                  InlineKeyboardButton('Услуги', callback_data='Услуги'),
+                  InlineKeyboardButton('Другое', callback_data='Другое'),
+                  InlineKeyboardButton('Назад', callback_data='cancel')]
     ctkb = InlineKeyboardMarkup(row_width=1).add(*catbuttons)
+
     catcrbuttons = [
-                  InlineKeyboardButton('Промышленное', callback_data='Промышленное'),
-                  InlineKeyboardButton('Логистика и склад', callback_data='Логистика и склад'),
-        InlineKeyboardButton('Готовый бизнес', callback_data='Готовый бизнес'),
-        InlineKeyboardButton('Для автобизнеса', callback_data='Для автобизнеса'),
-                  InlineKeyboardButton('Для магазина', callback_data='Для магазина'),
-                  InlineKeyboardButton('Для ресторана', callback_data='Для ресторана'),
-                  InlineKeyboardButton('Для салона красоты', callback_data='Для салона красоты'),
-                  InlineKeyboardButton('Лабораторное', callback_data='Лабораторное'),
-                  InlineKeyboardButton('Медицинское', callback_data='Медицинское'),
+                  InlineKeyboardButton('Мужская одежда и обувь', callback_data='Мужская одежда и обувь'),
+                  InlineKeyboardButton('Женская одежда и обувь', callback_data='Женская одежда и обувь'),
+                  InlineKeyboardButton('Детская одежда и обувь', callback_data='Детская одежда и обувь'),
+                  InlineKeyboardButton('Товары для детей и игрушки', callback_data='Товары для детей и игрушки'),
+                  InlineKeyboardButton('Электроника', callback_data='Электроника '),
+                  InlineKeyboardButton('Красота и здоровье', callback_data='Красота и здоровье'),
+                  InlineKeyboardButton('Часы и украшения', callback_data='Часы и украшения'),
+                  InlineKeyboardButton('Работа', callback_data='Работа'),
+                  InlineKeyboardButton('Услуги', callback_data='Услуги'),
                   InlineKeyboardButton('Другое', callback_data='Другое'),
                   InlineKeyboardButton('Назад', callback_data='cancel')]
     ctkbc = InlineKeyboardMarkup(row_width=1).add(*catcrbuttons)
@@ -77,6 +92,10 @@ def main():
     # CANCEL KEYBOARD
     cnck = InlineKeyboardButton('Назад', callback_data='cancel')
     cnkb = InlineKeyboardMarkup(row_width=1).add(cnck)
+
+    # GM KEYBOARD
+    cnck = InlineKeyboardButton('Главное меню', callback_data='cancel')
+    gmkb = InlineKeyboardMarkup(row_width=1).add(cnck)
 
 # start command logic
 
@@ -150,7 +169,35 @@ def main():
             await WatchAd.type.set()
             await bot.send_message(chat_id=callback_query.from_user.id, text='Выберите категорию товара',
                                    reply_markup=ctkb)
-
+        elif callback_query.data == 'video':
+            await bot.send_video(callback_query.from_user.id, open('images/videoguide.mp4', 'rb'))
+        elif callback_query.data == 'rules':
+            text = u"""
+            Запрещено размещение:
+•	Объявлений о продаже запрещенных товаров и услуг.
+•	Объявлений о несуществующих и неактуальных предложениях.
+•	Объявлений, не дающих исчерпывающего представления о товаре или услуге.
+•	Объявлений с заведомо ложной информацией о товаре или услуге (цена в ценнике и в описании должна совпадать, название и описание объявлений должны соответствовать товару, изображенному на фотографиях, и т.п.)
+Объявлений с информацией, которая:
+1.	содержит угрозы, дискредитирует, оскорбляет, порочит честь и достоинство или деловую репутацию, или нарушает неприкосновенность частной жизни других пользователей или третьих лиц;
+2.	нарушает права несовершеннолетних лиц;
+3.	является вульгарной или непристойной, содержит порнографические изображения и тексты или сцены сексуального характера с участием несовершеннолетних; содержит нецензурную брань, бранные слова и выражения, не относящиеся к нецензурной брани;
+4.	содержит информацию о жестоком обращении с животными;
+5.	содержит описание средств и способов суицида, любое подстрекательство к его совершению;
+6.	пропагандирует и/или способствует разжиганию расовой, религиозной, этнической ненависти или вражды, пропагандирует фашизм или идеологию расового превосходства;
+7.	содержит экстремистские материалы;
+8.	пропагандирует преступную деятельность или содержит советы, инструкции или руководства по совершению преступных действий
+9.	содержит информацию ограниченного доступа, включая, но не ограничиваясь, государственной и коммерческой тайной, информацией о частной жизни третьих лиц;
+10.	содержит рекламу или описывает привлекательность употребления наркотических веществ, в том числе «цифровых наркотиков» (звуковых файлов, оказывающих воздействие на мозг человека за счет бинауральных ритмов), информацию о распространении наркотиков, рецепты их изготовления и советы по употреблению;
+11.	носит мошеннический характер;
+12.	нарушает интеллектуальные права третьих лиц;
+13.	содержит спам, в том числе в виде простого набора букв в объявлении, в том числе в названии и/или описании товара, размещения объявлений в отношении несуществующих товаров
+14.	нарушает иные права и интересы граждан и юридических лиц или требования законодательства Российской Федерации;
+15.	описывает способы заработка в интернете, содержит информацию о казино, тотализаторах, любых азартных играх и пари;
+16.	содержит описание финансовых пирамид;
+17.	является политической рекламой.
+            """
+            await bot.send_message(chat_id=callback_query.from_user.id,text=text)
 # Admin logic
 
     @dp.message_handler(state=Admin.AdminPannel)
@@ -189,7 +236,7 @@ def main():
         elif message.text == 'Статистика📊':
             result = await db.get_stats()
             await message.answer(result[0])
-            await bot.send_photo(chat_id=message.from_user.id,photo=InputFile(os.getcwd()+'\\images\\stats\\' + result[1] + '.png'), caption='Статистика объявлений по категориям')
+            await bot.send_photo(chat_id=message.from_user.id,photo=InputFile(os.getcwd()+'/images/stats/' + result[1] + '.png'), caption='Статистика объявлений по категориям')
 
     @dp.message_handler(state=Admin.DeleteAds)
     async def adwatch_page(message: types.Message,state: FSMContext):
@@ -319,26 +366,135 @@ def main():
             ads = data['pages']
 
         if len(ads)==0:
-            await call.message.answer('Пока объявлений нет:(',reply_markup=cnkb)
+            await state.set_state('WatchAd:page')
+            await call.message.answer('Пока объявлений нет:(',reply_markup=gmkb)
         else:
             for i in ads[0]:
                 await bot.send_photo(chat_id=call.from_user.id, photo=InputFile(os.getcwd() + i[4]),
                                  caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUsername/телефон: {i[6]}\n')
-            await call.message.answer('Для просмотра следующей страницы введите необходимое число (например 2)',
-                             reply_markup=cnkb)
+            #await call.message.answer('ㅤ',
+                             #reply_markup=cnkb)
             await state.set_state('WatchAd:page')
+            if len(ads)>1:
+                next = InlineKeyboardButton('Следующая страница', callback_data='nextpage')
+                cnck = InlineKeyboardButton('Главное меню', callback_data='cancel')
+                pagekb = InlineKeyboardMarkup(row_width=2).add(cnck,next)
+                await bot.send_message(chat_id=call.from_user.id,text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',reply_markup=pagekb)
+            elif len(ads)==1:
+                cnck = InlineKeyboardButton('Главное меню', callback_data='cancel')
+                pagekb = InlineKeyboardMarkup(row_width=2).add(cnck)
+                await bot.send_message(chat_id=call.from_user.id,text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',reply_markup=pagekb)
+
 
     @dp.message_handler(state=WatchAd.page)
     async def adwatch_page(message: types.Message,state: FSMContext):
         async with state.proxy() as data:
             ads = data['pages']
         if message.text.isdigit() == False or int(message.text)>len(ads):
-            await message.answer('Такой страницы не существует!',reply_markup=cnkb)
+            await message.answer('Такой страницы не существует!',reply_markup=gmkb)
         else:
+            async with state.proxy() as data:
+                data['page'] = int(message.text)
             for i in ads[int(message.text)-1]:
                 await bot.send_photo(chat_id=message.chat.id, photo=InputFile(os.getcwd() + i[4]),
                                  caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUsername/телефон: {i[6]}\n')
-            await message.answer(f'Cтраница {message.text} из {len(ads)}',reply_markup=cnkb)
+            await message.answer(f'Cтраница {message.text} из {len(ads)}')
+            if message.text == '1':
+                if len(ads) > 1:
+                    cnck = InlineKeyboardButton('Главное меню', callback_data='cancel')
+                    next = InlineKeyboardButton('Следующая страница', callback_data='nextpage')
+                    pagekb = InlineKeyboardMarkup(row_width=2).add(cnck,next)
+                    await bot.send_message(chat_id=message.from_user.id,text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',reply_markup=pagekb)
+            elif message.text == str(len(ads)) and message.text!='1':
+                cnck = InlineKeyboardButton('Главное меню', callback_data='cancel')
+                last = InlineKeyboardButton('Предыдущая страница', callback_data='lastpage')
+                pagekb = InlineKeyboardMarkup(row_width=2).add(cnck,last)
+                await bot.send_message(chat_id=message.from_user.id,text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',reply_markup=pagekb)
+            else:
+                next = InlineKeyboardButton('Следующая страница', callback_data='nextpage')
+                last = InlineKeyboardButton('Предыдущая страница', callback_data='lastpage')
+                cnck = InlineKeyboardButton('Главное меню', callback_data='cancel')
+                pagekb = InlineKeyboardMarkup(row_width=2).add(last,next,cnck)
+                await bot.send_message(chat_id=message.from_user.id,text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',reply_markup=pagekb)
+
+    @dp.callback_query_handler(state=WatchAd.page)
+    async def pagebutns(callback_query: types.CallbackQuery,state=FSMContext):
+        if callback_query.data == 'nextpage':
+            try:
+                async with state.proxy() as data:
+                    ads = data['pages']
+                    page = int(data['page'])
+                if page > len(ads):
+                    await callback_query.message.answer('Такой страницы не существует!', reply_markup=gmkb)
+                else:
+                    async with state.proxy() as data:
+                        data['page'] += 1
+                        page = data['page']
+                    for i in ads[page - 1]:
+                        await bot.send_photo(chat_id=callback_query.from_user.id, photo=InputFile(os.getcwd() + i[4]),
+                                         caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUsername/телефон: {i[6]}\n')
+                    await callback_query.message.answer(f'Cтраница {page} из {len(ads)}')
+                    if str(page) == '1':
+                        if len(ads) > 1:
+                            cnck = InlineKeyboardButton('Главное меню', callback_data='cancel')
+                            next = InlineKeyboardButton('Следующая страница', callback_data='nextpage')
+                            pagekb = InlineKeyboardMarkup(row_width=2).add(cnck,next)
+                            await bot.send_message(chat_id=callback_query.from_user.id, text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',
+                                               reply_markup=pagekb)
+                    elif str(page) == str(len(ads)) and str(page) != '1':
+                        cnck = InlineKeyboardButton('Главное меню', callback_data='cancel')
+                        last = InlineKeyboardButton('Предыдущая страница', callback_data='lastpage')
+                        pagekb = InlineKeyboardMarkup(row_width=2).add(cnck,last)
+                        await bot.send_message(chat_id=callback_query.from_user.id, text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',
+                                           reply_markup=pagekb)
+                    else:
+                        next = InlineKeyboardButton('Следующая страница', callback_data='nextpage')
+                        last = InlineKeyboardButton('Предыдущая страница', callback_data='lastpage')
+                        cnck = InlineKeyboardButton('Главное меню', callback_data='cancel')
+                        pagekb = InlineKeyboardMarkup(row_width=2).add(last, next, cnck)
+                        await bot.send_message(chat_id=callback_query.from_user.id, text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',
+                                           reply_markup=pagekb)
+            except Exception as inst:
+                print(inst)
+                await bot.send_message(chat_id=callback_query.from_user.id, text='Bot exception!')
+
+        elif callback_query.data == 'lastpage':
+            try:
+                async with state.proxy() as data:
+                    ads = data['pages']
+                    page = int(data['page'])
+                if page > len(ads):
+                    await callback_query.message.answer('Такой страницы не существует!', reply_markup=gmkb)
+                else:
+                    async with state.proxy() as data:
+                        data['page'] -= 1
+                        page = data['page']
+                    for i in ads[page - 1]:
+                        await bot.send_photo(chat_id=callback_query.from_user.id, photo=InputFile(os.getcwd() + i[4]),
+                                         caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUsername/телефон: {i[6]}\n')
+                    await callback_query.message.answer(f'Cтраница {page} из {len(ads)}')
+                    if str(page) == '1':
+                        if len(ads) > 1:
+                            cnck = InlineKeyboardButton('Главное меню', callback_data='cancel')
+                            next = InlineKeyboardButton('Следующая страница', callback_data='nextpage')
+                            pagekb = InlineKeyboardMarkup(row_width=2).add(cnck,next)
+                            await bot.send_message(chat_id=callback_query.from_user.id, text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',
+                                               reply_markup=pagekb)
+                    elif str(page) == str(len(ads)) and str(page) != '1':
+                        cnck = InlineKeyboardButton('Главное меню', callback_data='cancel')
+                        last = InlineKeyboardButton('Предыдущая страница', callback_data='lastpage')
+                        pagekb = InlineKeyboardMarkup(row_width=2).add(cnck,last)
+                        await bot.send_message(chat_id=callback_query.from_user.id, text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',
+                                           reply_markup=pagekb)
+                    else:
+                        next = InlineKeyboardButton('Следующая страница', callback_data='nextpage')
+                        last = InlineKeyboardButton('Предыдущая страница', callback_data='lastpage')
+                        cnck = InlineKeyboardButton('Главное меню', callback_data='cancel')
+                        pagekb = InlineKeyboardMarkup(row_width=2).add(last, next, cnck)
+                        await bot.send_message(chat_id=callback_query.from_user.id, text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',
+                                           reply_markup=pagekb)
+            except:
+                await bot.send_message(chat_id=callback_query.from_user.id, text='Bot exception!')
 
 # polling
     executor.start_polling(dp, skip_updates=True)
