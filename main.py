@@ -45,15 +45,23 @@ class Admin(StatesGroup):
     AdminPannel = State()
     DeleteAds = State()
 
+class Myads(StatesGroup):
+    pages = State()
+    page = State()
+
+
+
+
 def main():
 
     # START KEYBOARD
     watch_ob = InlineKeyboardButton('Смотреть объявления', callback_data='watch')
     create_ob = InlineKeyboardButton('Создать объявление', callback_data='create')
+    my_ads = InlineKeyboardButton('Мои объявления', callback_data='my_ads')
     admin_rev = InlineKeyboardButton('Связь с администратором', url='t.me/myth75')
     rules = InlineKeyboardButton('Правила пользования', callback_data='rules')
     video_guide = InlineKeyboardButton('Видеоинструкция', callback_data='video')
-    startkb = InlineKeyboardMarkup(row_width=1).add(watch_ob,create_ob,admin_rev,rules,video_guide)
+    startkb = InlineKeyboardMarkup(row_width=1).add(watch_ob,create_ob,my_ads,admin_rev,rules,video_guide)
 
     # ADMIN KEYBOARD
     admin_buttons = ['Модерация объявлений✔', 'Удаление объявлений🗑️', 'Статистика📊', 'Выход🏃']
@@ -62,29 +70,31 @@ def main():
 
     # CATEGORY KEYBOARD
     catbuttons = [
-                  InlineKeyboardButton('Мужская одежда и обувь', callback_data='Мужская одежда и обувь'),
-                  InlineKeyboardButton('Женская одежда и обувь', callback_data='Женская одежда и обувь'),
-                  InlineKeyboardButton('Детская одежда и обувь', callback_data='Детская одежда и обувь'),
-                  InlineKeyboardButton('Товары для детей и игрушки', callback_data='Товары для детей и игрушки'),
-                  InlineKeyboardButton('Электроника', callback_data='Электроника '),
-                  InlineKeyboardButton('Красота и здоровье', callback_data='Красота и здоровье'),
-                  InlineKeyboardButton('Часы и украшения', callback_data='Часы и украшения'),
-                  InlineKeyboardButton('Работа', callback_data='Работа'),
-                  InlineKeyboardButton('Услуги', callback_data='Услуги'),
+                  InlineKeyboardButton('Недвижимость Москва и МО', callback_data='Недвижимость Москва и МО'),
+                  InlineKeyboardButton('Недвижимость Санкт-Петербург и ЛО', callback_data='Недвижимость Санкт-Петербург и ЛО'),
+                  InlineKeyboardButton('Недвижимость Краснодарский край', callback_data='Недвижимость Краснодарский край'),
+                  InlineKeyboardButton('Недвижимость другие регионы РФ', callback_data='Недвижимость другие регионы РФ'),
+                  InlineKeyboardButton('Зарубежная недвижимость', callback_data='Зарубежная недвижимость'),
+                  InlineKeyboardButton('Коммерческая недвижимость', callback_data='Коммерческая недвижимость'),
+                  InlineKeyboardButton('Аренда Москва', callback_data='Аренда Москва'),
+                  InlineKeyboardButton('Аренда регионы РФ', callback_data='Аренда регионы РФ'),
+                  InlineKeyboardButton('Продажа бизнеса', callback_data='Продажа бизнеса'),
+                  InlineKeyboardButton('Продажа оборудования', callback_data='Продажа оборудования'),
                   InlineKeyboardButton('Другое', callback_data='Другое'),
                   InlineKeyboardButton('Назад', callback_data='cancel')]
     ctkb = InlineKeyboardMarkup(row_width=1).add(*catbuttons)
 
     catcrbuttons = [
-                  InlineKeyboardButton('Мужская одежда и обувь', callback_data='Мужская одежда и обувь'),
-                  InlineKeyboardButton('Женская одежда и обувь', callback_data='Женская одежда и обувь'),
-                  InlineKeyboardButton('Детская одежда и обувь', callback_data='Детская одежда и обувь'),
-                  InlineKeyboardButton('Товары для детей и игрушки', callback_data='Товары для детей и игрушки'),
-                  InlineKeyboardButton('Электроника', callback_data='Электроника '),
-                  InlineKeyboardButton('Красота и здоровье', callback_data='Красота и здоровье'),
-                  InlineKeyboardButton('Часы и украшения', callback_data='Часы и украшения'),
-                  InlineKeyboardButton('Работа', callback_data='Работа'),
-                  InlineKeyboardButton('Услуги', callback_data='Услуги'),
+                  InlineKeyboardButton('Недвижимость Москва и МО', callback_data='Недвижимость Москва и МО'),
+                  InlineKeyboardButton('Недвижимость Санкт-Петербург и ЛО', callback_data='Недвижимость Санкт-Петербург и ЛО'),
+                  InlineKeyboardButton('Недвижимость Краснодарский край', callback_data='Недвижимость Краснодарский край'),
+                  InlineKeyboardButton('Недвижимость другие регионы РФ', callback_data='Недвижимость другие регионы РФ'),
+                  InlineKeyboardButton('Зарубежная недвижимость', callback_data='Зарубежная недвижимость'),
+                  InlineKeyboardButton('Коммерческая недвижимость', callback_data='Коммерческая недвижимость'),
+                  InlineKeyboardButton('Аренда Москва', callback_data='Аренда Москва'),
+                  InlineKeyboardButton('Аренда регионы РФ', callback_data='Аренда регионы РФ'),
+                  InlineKeyboardButton('Продажа бизнеса', callback_data='Продажа бизнеса'),
+                  InlineKeyboardButton('Продажа оборудования', callback_data='Продажа оборудования'),
                   InlineKeyboardButton('Другое', callback_data='Другое'),
                   InlineKeyboardButton('Назад', callback_data='cancel')]
     ctkbc = InlineKeyboardMarkup(row_width=1).add(*catcrbuttons)
@@ -97,13 +107,20 @@ def main():
     cnck = InlineKeyboardButton('Главное меню', callback_data='cancel')
     gmkb = InlineKeyboardMarkup(row_width=1).add(cnck)
 
+    # start func
+    async def start_message_send(userid):
+        await db.add_user(userid)
+        await bot.send_photo(userid, photo=InputFile("images/doska-obyavlenii.png"),
+                             caption=f"Широкий выбор промышленного оборудования от надежных производителей. На нашей доске объявлений вы найдете станки, резаки, пресс-формы и многое другое для различных отраслей.\nПользователей бота: {await db.get_len_users()} , размещено объявлений: {await db.get_len_ads()}.\nПодписывайтесь на наш канал, чтобы быть в курсе новостей и специальных предложений.",
+                             reply_markup=startkb)
+
 # start command logic
 
     @dp.message_handler(commands=['start'])
     async def process_start_command(message: types.Message):
-        await db.add_user(message.from_user.id)
-        await bot.send_photo(message.chat.id, photo=InputFile("images/doska-obyavlenii.png"), caption=f"Широкий выбор промышленного оборудования от надежных производителей. На нашей доске объявлений вы найдете станки, резаки, пресс-формы и многое другое для различных отраслей.\nПользователей бота: {await db.get_len_users()} , размещено объявлений: {await db.get_len_ads()}.\nПодписывайтесь на наш канал, чтобы быть в курсе новостей и специальных предложений.",reply_markup=startkb)
-
+        #await db.add_user(message.from_user.id)
+        #await bot.send_photo(message.chat.id, photo=InputFile("images/doska-obyavlenii.png"), caption=f"Широкий выбор промышленного оборудования от надежных производителей. На нашей доске объявлений вы найдете станки, резаки, пресс-формы и многое другое для различных отраслей.\nПользователей бота: {await db.get_len_users()} , размещено объявлений: {await db.get_len_ads()}.\nПодписывайтесь на наш канал, чтобы быть в курсе новостей и специальных предложений.",reply_markup=startkb)
+        await start_message_send(message.from_user.id)
 # admin command logic
     @dp.message_handler(commands=['admin'])
     async def process_admin_command(message: types.Message,state: FSMContext):
@@ -121,9 +138,7 @@ def main():
         current_state = await state.get_state()
         if current_state=='NewAd:type':
             await state.reset_state()
-            await bot.send_photo(callback_query.from_user.id, photo=InputFile("images/doska-obyavlenii.png"),
-                                 caption=f"Широкий выбор промышленного оборудования от надежных производителей. На нашей доске объявлений вы найдете станки, резаки, пресс-формы и многое другое для различных отраслей.\nПользователей бота: {await db.get_len_users()} , размещено объявлений: {await db.get_len_ads()}.\nПодписывайтесь на наш канал, чтобы быть в курсе новостей и специальных предложений.",
-                                 reply_markup=startkb)
+            await start_message_send(callback_query.from_user.id)
         elif current_state=='NewAd:name':
             await state.set_state('NewAd:type')
             await bot.send_message(chat_id=callback_query.from_user.id, text='Выберите категорию товара',
@@ -150,27 +165,34 @@ def main():
         current_state = await state.get_state()
         if current_state == 'WatchAd:type':
             await state.reset_state()
-            await bot.send_photo(callback_query.from_user.id, photo=InputFile("images/doska-obyavlenii.png"),
-                                 caption=f"Широкий выбор промышленного оборудования от надежных производителей. На нашей доске объявлений вы найдете станки, резаки, пресс-формы и многое другое для различных отраслей.\nПользователей бота: {await db.get_len_users()} , размещено объявлений: {await db.get_len_ads()}.\nПодписывайтесь на наш канал, чтобы быть в курсе новостей и специальных предложений.",
-                                 reply_markup=startkb)
+            await start_message_send(callback_query.from_user.id)
         elif current_state == 'WatchAd:page':
             await state.set_state('WatchAd:type')
             await bot.send_message(chat_id=callback_query.from_user.id, text='Выберите категорию товара',
                                    reply_markup=ctkb)
 
+    @dp.callback_query_handler(lambda c: c.data == 'cancel', state=Myads)
+    async def process_callback_button(callback_query: types.CallbackQuery, state: FSMContext):
+        await state.reset_state()
+        await start_message_send(callback_query.from_user.id)
+
+
 # create or watch select
 
     @dp.callback_query_handler()
-    async def newad(callback_query: types.CallbackQuery):
+    async def newad(callback_query: types.CallbackQuery, state: FSMContext):
         if callback_query.data == 'create':
             await NewAd.type.set()
             await bot.send_message(chat_id=callback_query.from_user.id,text='Выберите категорию товара',reply_markup=ctkbc)
+
         elif callback_query.data == 'watch':
             await WatchAd.type.set()
             await bot.send_message(chat_id=callback_query.from_user.id, text='Выберите категорию товара',
                                    reply_markup=ctkb)
+
         elif callback_query.data == 'video':
             await bot.send_video(callback_query.from_user.id, open('images/videoguide.mp4', 'rb'))
+
         elif callback_query.data == 'rules':
             text = u"""
             Запрещено размещение:
@@ -198,6 +220,169 @@ def main():
 17.	является политической рекламой.
             """
             await bot.send_message(chat_id=callback_query.from_user.id,text=text)
+
+        elif callback_query.data == 'my_ads':
+            await Myads.pages.set()
+            async with state.proxy() as data:
+                data['pages'] = await db.get_my_ads(callback_query.from_user.id)
+                data['page'] = 1
+                ads = data['pages']
+            if len(ads) == 0:
+                await callback_query.message.answer('Пока объявлений нет:(', reply_markup=gmkb)
+            else:
+                for i in ads[0]:
+                    buttons = [InlineKeyboardButton('Удалить🗑️', callback_data=f'delete_{i[0]}')]
+                    kb = InlineKeyboardMarkup(row_width=1).add(*buttons)
+                    await bot.send_photo(chat_id=callback_query.from_user.id, photo=InputFile(os.getcwd() + i[4]),
+                                         caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUsername/телефон: {i[6]}\n', reply_markup=kb)
+
+
+                if len(ads) > 1:
+                    next = InlineKeyboardButton('Следующая страница', callback_data='nextpage')
+                    cnck = InlineKeyboardButton('Назад', callback_data='cancel')
+                    pagekb = InlineKeyboardMarkup(row_width=2).add(cnck, next)
+                    await bot.send_message(chat_id=callback_query.from_user.id,
+                                           text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',
+                                           reply_markup=pagekb)
+                elif len(ads) == 1:
+                    cnck = InlineKeyboardButton('Назад', callback_data='cancel')
+                    pagekb = InlineKeyboardMarkup(row_width=2).add(cnck)
+                    await bot.send_message(chat_id=callback_query.from_user.id,
+                                           text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',
+                                           reply_markup=pagekb)
+
+# Watch my ads logic
+    @dp.message_handler(state=Myads.pages)
+    async def adwatch_page_my(message: types.Message, state: FSMContext):
+        async with state.proxy() as data:
+            ads = data['pages']
+        if message.text.isdigit() == False or int(message.text) > len(ads):
+            cnck = InlineKeyboardButton('Назад', callback_data='cancel')
+            kb = InlineKeyboardMarkup(row_width=1).add(cnck)
+            await message.answer('Такой страницы не существует!', reply_markup=kb)
+        else:
+            async with state.proxy() as data:
+                data['page'] = int(message.text)
+            for i in ads[int(message.text) - 1]:
+                buttons = [InlineKeyboardButton('Удалить🗑️', callback_data=f'delete_{i[0]}')]
+                kb = InlineKeyboardMarkup(row_width=1).add(*buttons)
+                await bot.send_photo(chat_id=message.chat.id, photo=InputFile(os.getcwd() + i[4]),
+                                     caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUsername/телефон: {i[6]}\n',reply_markup=kb)
+            await message.answer(f'Cтраница {message.text} из {len(ads)}')
+            if message.text == '1':
+                if len(ads) > 1:
+                    cnck = InlineKeyboardButton('Назад', callback_data='cancel')
+                    next = InlineKeyboardButton('Следующая страница', callback_data='nextpage')
+                    pagekb = InlineKeyboardMarkup(row_width=2).add(cnck, next)
+                    await bot.send_message(chat_id=message.from_user.id,
+                                           text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',
+                                           reply_markup=pagekb)
+            elif message.text == str(len(ads)) and message.text != '1':
+                cnck = InlineKeyboardButton('Назад', callback_data='cancel')
+                last = InlineKeyboardButton('Предыдущая страница', callback_data='lastpage')
+                pagekb = InlineKeyboardMarkup(row_width=2).add(cnck, last)
+                await bot.send_message(chat_id=message.from_user.id,
+                                       text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',
+                                       reply_markup=pagekb)
+            else:
+                next = InlineKeyboardButton('Следующая страница', callback_data='nextpage')
+                last = InlineKeyboardButton('Предыдущая страница', callback_data='lastpage')
+                cnck = InlineKeyboardButton('Назад', callback_data='cancel')
+                pagekb = InlineKeyboardMarkup(row_width=2).add(last, next, cnck)
+                await bot.send_message(chat_id=message.from_user.id,
+                                       text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',
+                                       reply_markup=pagekb)
+
+    @dp.callback_query_handler(state=Myads.pages)
+    async def pagebutns_my(callback_query: types.CallbackQuery,state=FSMContext):
+        if callback_query.data == 'nextpage':
+            try:
+                async with state.proxy() as data:
+                    ads = data['pages']
+                    page = int(data['page'])
+                if page > len(ads):
+                    await callback_query.message.answer('Такой страницы не существует!', reply_markup=gmkb)
+                else:
+                    async with state.proxy() as data:
+                        data['page'] += 1
+                        page = data['page']
+                    for i in ads[page - 1]:
+                        buttons = [InlineKeyboardButton('Удалить🗑️', callback_data=f'delete_{i[0]}')]
+                        kb = InlineKeyboardMarkup(row_width=1).add(*buttons)
+                        await bot.send_photo(chat_id=callback_query.from_user.id, photo=InputFile(os.getcwd() + i[4]),
+                                         caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUsername/телефон: {i[6]}\n',reply_markup=kb)
+                    await callback_query.message.answer(f'Cтраница {page} из {len(ads)}')
+                    if str(page) == '1':
+                        if len(ads) > 1:
+                            cnck = InlineKeyboardButton('Назад', callback_data='cancel')
+                            next = InlineKeyboardButton('Следующая страница', callback_data='nextpage')
+                            pagekb = InlineKeyboardMarkup(row_width=2).add(cnck,next)
+                            await bot.send_message(chat_id=callback_query.from_user.id, text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',
+                                               reply_markup=pagekb)
+                    elif str(page) == str(len(ads)) and str(page) != '1':
+                        cnck = InlineKeyboardButton('Назад', callback_data='cancel')
+                        last = InlineKeyboardButton('Предыдущая страница', callback_data='lastpage')
+                        pagekb = InlineKeyboardMarkup(row_width=2).add(cnck,last)
+                        await bot.send_message(chat_id=callback_query.from_user.id, text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',
+                                           reply_markup=pagekb)
+                    else:
+                        next = InlineKeyboardButton('Следующая страница', callback_data='nextpage')
+                        last = InlineKeyboardButton('Предыдущая страница', callback_data='lastpage')
+                        cnck = InlineKeyboardButton('Назад', callback_data='cancel')
+                        pagekb = InlineKeyboardMarkup(row_width=2).add(last, next, cnck)
+                        await bot.send_message(chat_id=callback_query.from_user.id, text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',
+                                           reply_markup=pagekb)
+            except Exception as inst:
+                print(inst)
+                await bot.send_message(chat_id=callback_query.from_user.id, text='Bot exception!')
+
+        elif callback_query.data == 'lastpage':
+            try:
+                async with state.proxy() as data:
+                    ads = data['pages']
+                    page = int(data['page'])
+                if page > len(ads):
+                    await callback_query.message.answer('Такой страницы не существует!', reply_markup=gmkb)
+                else:
+                    async with state.proxy() as data:
+                        data['page'] -= 1
+                        page = data['page']
+                    for i in ads[page - 1]:
+                        buttons = [InlineKeyboardButton('Удалить🗑️', callback_data=f'delete_{i[0]}')]
+                        kb = InlineKeyboardMarkup(row_width=1).add(*buttons)
+                        await bot.send_photo(chat_id=callback_query.from_user.id, photo=InputFile(os.getcwd() + i[4]),
+                                         caption=f' Название: {i[2]}\nОписание: {i[3]}\nЦена: {i[5]}₽\nUsername/телефон: {i[6]}\n',reply_markup=kb)
+                    await callback_query.message.answer(f'Cтраница {page} из {len(ads)}')
+                    if str(page) == '1':
+                        if len(ads) > 1:
+                            cnck = InlineKeyboardButton('Назад', callback_data='cancel')
+                            next = InlineKeyboardButton('Следующая страница', callback_data='nextpage')
+                            pagekb = InlineKeyboardMarkup(row_width=2).add(cnck,next)
+                            await bot.send_message(chat_id=callback_query.from_user.id, text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',
+                                               reply_markup=pagekb)
+                    elif str(page) == str(len(ads)) and str(page) != '1':
+                        cnck = InlineKeyboardButton('Назад', callback_data='cancel')
+                        last = InlineKeyboardButton('Предыдущая страница', callback_data='lastpage')
+                        pagekb = InlineKeyboardMarkup(row_width=2).add(cnck,last)
+                        await bot.send_message(chat_id=callback_query.from_user.id, text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',
+                                           reply_markup=pagekb)
+                    else:
+                        next = InlineKeyboardButton('Следующая страница', callback_data='nextpage')
+                        last = InlineKeyboardButton('Предыдущая страница', callback_data='lastpage')
+                        cnck = InlineKeyboardButton('Назад', callback_data='cancel')
+                        pagekb = InlineKeyboardMarkup(row_width=2).add(last, next, cnck)
+                        await bot.send_message(chat_id=callback_query.from_user.id, text='Кнопки навигации по страницам. Вы также можете ввести номер необходимой страницы.',
+                                           reply_markup=pagekb)
+            except:
+                await bot.send_message(chat_id=callback_query.from_user.id, text='Bot exception!')
+
+        elif callback_query.data[:6] == 'delete':
+            id_ad = int(callback_query.data[7:])
+            await db.delete_ad(id_ad)
+            async with state.proxy() as data:
+                data['pages'] = await db.get_my_ads(callback_query.from_user.id)
+            await callback_query.message.delete()
+
 # Admin logic
 
     @dp.message_handler(state=Admin.AdminPannel)
@@ -205,9 +390,7 @@ def main():
         if message.text=='Выход🏃':
             await state.reset_state()
             await message.answer('Вы вышли из панели администратора!❌',reply_markup=types.ReplyKeyboardRemove())
-            await bot.send_photo(message.from_user.id, photo=InputFile("images/doska-obyavlenii.png"),
-                                 caption=f"Широкий выбор промышленного оборудования от надежных производителей. На нашей доске объявлений вы найдете станки, резаки, пресс-формы и многое другое для различных отраслей.\nПользователей бота: {await db.get_len_users()} , размещено объявлений: {await db.get_len_ads()}.\nПодписывайтесь на наш канал, чтобы быть в курсе новостей и специальных предложений.",
-                                 reply_markup=startkb)
+            await start_message_send(message.from_user.id)
         elif message.text=='Модерация объявлений✔':
             ads = await db.moder_ad()
             if len(ads)==0:
@@ -337,7 +520,7 @@ def main():
         try:
             async with state.proxy() as data:
                 data['price'] = float(message.text)
-            await message.answer('Отправьте свой username в телеграмм в виде @userid или номер телефона',reply_markup=cnkb)
+            await message.answer(f'Отправьте свой username в телеграмм в виде @userid или номер телефона, если в ответ вы отправите ".", то ваш юзернейм(@{message.from_user.username}) будет указан автоматически.', reply_markup=cnkb)
             await NewAd.next()
         except:
             await message.answer('Цена должна быть числом!')
@@ -345,12 +528,13 @@ def main():
     @dp.message_handler(state=NewAd.userid)
     async def ad_uid(message: types.Message,state: FSMContext):
         async with state.proxy() as data:
-            data['userid'] = message.text
+            if message.text == '.':
+                data['userid'] = f'@{message.from_user.username}'
+            else:
+                data['userid'] = message.text
             userfromid = message.from_user.id
         await message.answer('Ваше объявление отправлено на модерацию!')
-        await bot.send_photo(message.chat.id, photo=InputFile("images/doska-obyavlenii.png"),
-                             caption=f"Широкий выбор промышленного оборудования от надежных производителей. На нашей доске объявлений вы найдете станки, резаки, пресс-формы и многое другое для различных отраслей.\nПользователей бота: {await db.get_len_users()} , размещено объявлений: {await db.get_len_ads()}.\nПодписывайтесь на наш канал, чтобы быть в курсе новостей и специальных предложений.",
-                             reply_markup=startkb)
+        await start_message_send(message.from_user.id)
         async with state.proxy() as data:
             await db.add_ad(state, userfromid)
         await state.finish()
